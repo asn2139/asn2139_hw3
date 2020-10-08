@@ -87,33 +87,39 @@ Accelerometers have become an appealing alternative to self-report techniques fo
 
 This problem uses five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). The data can be downloaded here. In this spreadsheet, variables activity.* are the activity counts for each minute of a 24-hour day starting at midnight.
 
-```{r}
-accel_df=
-  read_csv("./data/accel_data.csv") %>% 
-  janitor::clean_names() 
-  
-  
-```
+
+
 
 Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
 
 ```{r}
-accel_df %>% 
-  pivot_longer(activity.1:activity.1440, 
+accel_df=
+  read_csv("./data/accel_data.csv") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(activity_1:activity_1440, 
                names_to="minute",
-               names_prefix="activity",
+               names_prefix="activity_",
                values_to= "activity_count") %>%
-  rename(Weekday=day) %>% 
-  rename(Day_Number=day_id) %>% 
-  mutate(minute=as.numeric(minute)*10) 
-  
-               
+                mutate(minute=as.numeric(minute)) %>%  
+                mutate(day_type=recode(day, "Saturday"="Weekend", "Sunday"="Weekend", "Monday"="Weekday",
+                                       "Tuesday"="Weekday", "Wednesday"="Weekday", "Thursday"="Weekday",
+                                       "Friday"="Weekday")) %>% 
+              relocate(week,day_id,day,day_type)
                
 ```
 
 Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
 
 group by and summarize problem
+
+```{r}
+accel_df %>% 
+      group_by(day) %>% 
+      summarize(across(day_id:activity_count)) %>% 
+      ggplot(aes(x=day_id,y=activity_count))+
+      geom_point()
+```
+
 
 
 Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
