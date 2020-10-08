@@ -4,3 +4,9 @@ author: "Akanksha Nalatwad"
 output: github_document
 ---
 
+```{r}
+devtools::install_github("p8105/p8105.datasets") 
+library(p8105.datasets)
+data("instacart")
+```
+
