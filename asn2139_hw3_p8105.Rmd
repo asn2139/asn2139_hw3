@@ -5,8 +5,80 @@ output: github_document
 ---
 
 ```{r}
+library(tidyverse)
+
+knitr::opts_chunk$set(
+  fig.width=6,
+  fig.asp= .6,
+  out.width= "90%"
+)
+theme_set(theme_minimal()+theme(legend.position="bottom"))
+
+options(
+  ggplot2.continuous.color="viridis",
+  ggplot2.continuous.fill= "viridis"
+)
+
+scale_color_discrete= scale_color_viridis_d
+scale_fill_discrete= scale_color_viridis_d
+```
+
+
+```{r}
 devtools::install_github("p8105/p8105.datasets") 
 library(p8105.datasets)
 data("instacart")
 ```
 
+How many aisles, and which are most items from?
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+Make a plot
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  filter(n>10000) %>% 
+  mutate(
+    aisle=factor(aisle),
+    aisle= fct_reorder(aisle,n)
+  ) %>% 
+  ggplot(aes(x=aisle, y=n))+
+  geom_point()+
+  theme(axis.text=element_text(angle=90, vjust=0.5, hjust=1))
+```
+
+
+Let's make a table!!
+
+```{r}
+instacart %>% 
+  filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetable fruits")) %>% 
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank=min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle,rank) %>% 
+  knitr::kable()
+```
+ 
+ Apples vs ice cream
+ 
+```{r}
+
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour=mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from= order_dow,
+    values_from=mean_hour
+  )
+```
+ 
+ 
