@@ -105,7 +105,8 @@ accel_df=
                 mutate(day_type=recode(day2, "Saturday"="Weekend", "Sunday"="Weekend", "Monday"="Weekday",
                                        "Tuesday"="Weekday", "Wednesday"="Weekday", "Thursday"="Weekday",
                                        "Friday"="Weekday")) %>% 
-              relocate(week,day_id,day,day_type)
+              relocate(week,day_id,day,day_type) %>% 
+          select(-day2)
                
 ```
 
@@ -114,10 +115,28 @@ Traditional analyses of accelerometer data focus on the total activity over the 
 group by and summarize problem
 
 ```{r}
+
+accel_modified_df=
 accel_df %>% 
-  group_by(day_id,week,day_type,day) %>% 
-  summarize(max_activity_per_day=max(activity_count), 
-            mean_activity_per_day=mean(activity_count))
+   select(-day_type) %>% 
+   group_by(day_id,week,day) %>% 
+   summarize(max_activity_per_day=max(activity_count, na.rm=TRUE), 
+            mean_activity_per_day=mean(activity_count,na.rm=TRUE)) %>% 
+   pivot_wider(names_sort=TRUE,
+               names_from=day,
+            values_from=max_activity_per_day) %>% 
+  relocate(day_id,week,Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, mean_activity_per_day) %>% 
+  group_by(week) %>%
+    summarise(Sunday= sum(Sunday, na.rm = T),
+            Monday= sum(Monday, na.rm = T),
+            Tuesday= sum(Tuesday, na.rm = T),
+            Wednesday= sum(Wednesday, na.rm = T),
+            Thursday= sum(Thursday, na.rm = T),
+            Friday= sum(Friday, na.rm = T),
+            Saturday=sum(Saturday,na.rm=T))
+
+
+  
 ```
 
 Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
