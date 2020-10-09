@@ -114,10 +114,9 @@ group by and summarize problem
 
 ```{r}
 accel_df %>% 
-      group_by(day) %>% 
-      summarize(across(day_id:activity_count)) %>% 
-      ggplot(aes(x=day_id,y=activity_count))+
-      geom_point()
+      mutate(activity_per_day=sum(activity_count)) %>% 
+      group_by(day_id)
+      
 ```
 
 
