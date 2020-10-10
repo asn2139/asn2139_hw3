@@ -201,6 +201,17 @@ theme(legend.position = "none")
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
 ```{r}
+tmax_tmin_p = 
+  ny_noaa_df %>% 
+  ggplot(aes(x = tmax, y = tmin)) + 
+  geom_line() +
+  theme(legend.position = "none")
+
+snowfall_df=
+  ny_noaa_df %>% 
+  filter(snow %in%(0:100)) %>% 
+  ggplot(aes(x=year, y=snow))+
+  geom_line()
 
 ```
 
