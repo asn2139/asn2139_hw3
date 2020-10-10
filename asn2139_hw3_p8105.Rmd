@@ -86,14 +86,9 @@ instacart %>%
  
 ## Problem 2 
 
-Accelerometers have become an appealing alternative to self-report techniques for studying physical activity in observational studies and clinical trials, largely because of their relative objectivity. During observation periods, the devices measure “activity counts” in a short period; one-minute intervals are common. Because accelerometers can be worn comfortably and unobtrusively, they produce around-the-clock observations.
-
-This problem uses five weeks of accelerometer data collected on a 63 year-old male with BMI 25, who was admitted to the Advanced Cardiac Care Center of Columbia University Medical Center and diagnosed with congestive heart failure (CHF). The data can be downloaded here. In this spreadsheet, variables activity.* are the activity counts for each minute of a 24-hour day starting at midnight.
 
 
-
-
-Load, tidy, and otherwise wrangle the data. Your final dataset should include all originally observed variables and values; have useful variable names; include a weekday vs weekend variable; and encode data with reasonable variable classes. Describe the resulting dataset (e.g. what variables exist, how many observations, etc).
+#Part 1: Loading and Tidying the Dataset
 
 ```{r}
 accel_df=
@@ -113,9 +108,14 @@ accel_df=
                
 ```
 
-Traditional analyses of accelerometer data focus on the total activity over the day. Using your tidied dataset, aggregate accross minutes to create a total activity variable for each day, and create a table showing these totals. Are any trends apparent?
+Description of Dataset: This dataset follows a 65 year old man's activity count over the course of 35 days.This dataset's rows include `r nrow(accel_df)` and it's columns include `r ncol(accel_df)`.  The median activity count per minute was `r accel_df %>% pull(activity_count) %>% median()`.
 
-group by and summarize problem
+
+
+## Part 2: Table of Total Activity Counts Per Day
+
+categorized by type of day and week
+
 
 ```{r}
 
@@ -139,9 +139,13 @@ accel_df %>%
             Friday= sum(Friday, na.rm = T),
             Saturday=sum(Saturday,na.rm=T))
 ```
+Apparent Trends: 
+-It looks like the first week the man had less activity than any other week.
+-On Saturday, the man seems to be least active since his activity counts were generally lower than on other days. 
+-His most active days are Friday.
 
-Accelerometer data allows the inspection activity over the course of the day. Make a single-panel plot that shows the 24-hour activity time courses for each day and use color to indicate day of the week. Describe in words any patterns or conclusions you can make based on this graph.
 
+## Single-Panel Plot of 24-hour Activity Time Course
 ```{r}
 
 plot_accel_df=
@@ -153,12 +157,14 @@ accel_df %>%
 ggsave("plot_accel_df.pdf", plot_accel_df, width=10, height=5)
       
 ```
+It looks like the man starts becoming active around 6am and continues being active until he goes to sleep. His highest activiy counts occurs around 10am, 5pm, and 8pm.Generally, Sundays are generally less active days excpet around 5pm. Generally his most active days are Tuesdays.
 
 ## Problem 3
 
-The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
 
-Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
+Before doing a data clean, this dataset is extremely large and bulky. It has over 5,000,000 values that follow the snowfall (mm), the depth of snow (mm), precepitation (tenths of mm), minimum temperature (in tenths of Celsius), maximum temperature(in tenths of Celsius) at different weather stations identified by id up to year 2010.There are hundreds of thousands of missing values since the weather stations are from all over the world and might not experience precipitation, or if the weather station was not able to gather data that day due to extenuating circumstances.  
+
+##Part 1: Cleaning Datset and Finding Most Common Snowfall Values
 
 ```{r}
 library(p8105.datasets)
@@ -178,9 +184,9 @@ snow_df=
   count() %>% 
   arrange(desc(n))
 ```
+The most common counts of snowfall include 0 which makes sense since a lot of these weather stations might not be in areas that have either no or seasonal snowfall. The next most common count was NA, meaning those values were missing. The third most common counts of snowfall include 25 which might be an indication of some kind of cutoff that might exist when measuring/observing snowfall. 
 
-
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+## Two-Panel Plot
 
 ```{r}
 
@@ -197,23 +203,28 @@ theme(legend.position = "none")
   
 ```
 
+It makes sense that generally temperatures are higher during January than July. But in January it looks like the January temperatures over the years follow similar trend lines with a few outliers in 2005. In July, it looks like the July temperatures over the years follow similar trendlines with outliers in 1987, 2004, and 2010. This plot is extremely hard to intrepret since there are so many plot lines on top of each other. It would be better in the future to be able to see fewer id stations at a time.
 
-Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+##Two-Panel PLot
 
 ```{r}
 library(patchwork)
+library(tidyverse)
 
-tmax_tmin_p = 
+tmax_tmin_p=
   ny_noaa_df %>% 
-  ggplot(aes(x = tmax, y= tmin)) + 
-  geom_dotplot()
+  ggplot(aes(x=tmin, y=tmax))+
+  geom_hex()
   
 
-snowfall_df=
-  ny_noaa_df %>% 
-  filter(snow %in%(0:100)) %>% 
-  ggplot(aes(x=year, y=snow))+
-  geom_point(alpha=0.5)
+snowfall_p=
+ ny_noaa %>% 
+   janitor::clean_names() %>% 
+  separate(date, c("year", "month", "day"), sep="-",convert=TRUE) %>% 
+  filter(snow %in% c(1:100)) %>% 
+  ggplot(aes(x=year, y=snow,group=year))+
+  geom_boxplot()
 
+tmax_tmin_p+snowfall_p
 ```
 
