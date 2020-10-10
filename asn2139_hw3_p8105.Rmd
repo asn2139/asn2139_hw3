@@ -205,9 +205,9 @@ library(patchwork)
 
 tmax_tmin_p = 
   ny_noaa_df %>% 
-  ggplot(aes(x = tmax, y = tmin)) + 
-  geom_point() +
-  theme(legend.position = "none")
+  ggplot(aes(x = tmax, y= tmin)) + 
+  geom_dotplot()
+  
 
 snowfall_df=
   ny_noaa_df %>% 
