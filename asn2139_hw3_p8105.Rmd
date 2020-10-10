@@ -6,6 +6,9 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+library(ggplot2)
+library(ggridges)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width=6,
@@ -159,21 +162,15 @@ Do some data cleaning. Create separate variables for year, month, and day. Ensur
 
 ```{r}
 library(p8105.datasets)
-library(tidyverse)
-library(ggplot2)
-library(ggridges)
-library(patchwork)
 data("ny_noaa")
 
 ny_noaa_df=
 ny_noaa %>% 
    janitor::clean_names() %>% 
   separate(date, c("year", "month", "day"), sep="-",convert=TRUE) %>% 
-  mutate(prcp=prcp/25.4) %>% 
+  mutate(prcp=as.numeric(prcp)) %>% 
   mutate(tmax= as.numeric(tmax)) %>% 
-  mutate(tmin= as.numeric(tmin)) %>%
-  mutate(tmax=tmax*10) %>% 
-  mutate(tmin=tmin*10) 
+  mutate(tmin= as.numeric(tmin))
 
 snow_df=
   ny_noaa_df %>% 
@@ -186,15 +183,24 @@ snow_df=
 Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
 
 ```{r}
-temp_df=
-  ny_noaa %>% 
-   janitor::clean_names() %>% 
-  separate(date, c("year", "month", "day"), sep="-") %>% 
-   mutate(tmax= as.numeric(tmax)) %>% 
-    mutate(tmax=tmax*10) %>% 
+
+library(ggplot2)
+  ny_noaa_df %>% 
+  filter(month %in% c("1","7")) %>% 
   group_by(id, year, month) %>%  
-  summarize(avg_tmax=mean(tmax,na.rm=TRUE))
+  summarize(avg_tmax=mean(tmax,na.rm=TRUE)) %>% 
+  ggplot(aes(x=year, y=avg_tmax, group=id,color=id))+
+  geom_point() +
+geom_path() +
+facet_grid(~ month)+
+theme(legend.position = "none")
+  
 ```
 
 
 Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
+
+```{r}
+
+```
+
