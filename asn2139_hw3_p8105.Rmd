@@ -156,16 +156,45 @@ ggsave("plot_accel_df.pdf", plot_accel_df, width=10, height=5)
 The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and indicating the extent to which missing data is an issue. Then, do or answer the following (commenting on the results of each):
 
 Do some data cleaning. Create separate variables for year, month, and day. Ensure observations for temperature, precipitation, and snowfall are given in reasonable units. For snowfall, what are the most commonly observed values? Why?
-Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
-Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
 
 ```{r}
 library(p8105.datasets)
+library(tidyverse)
+library(ggplot2)
+library(ggridges)
+library(patchwork)
 data("ny_noaa")
 
 ny_noaa_df=
 ny_noaa %>% 
    janitor::clean_names() %>% 
-  separate("date", c("year", "month", "day"), sep="-")
+  separate(date, c("year", "month", "day"), sep="-",convert=TRUE) %>% 
+  mutate(prcp=prcp/25.4) %>% 
+  mutate(tmax= as.numeric(tmax)) %>% 
+  mutate(tmin= as.numeric(tmin)) %>%
+  mutate(tmax=tmax*10) %>% 
+  mutate(tmin=tmin*10) 
+
+snow_df=
+  ny_noaa_df %>% 
+  group_by(snow) %>% 
+  count() %>% 
+  arrange(desc(n))
 ```
 
+
+Make a two-panel plot showing the average max temperature in January and in July in each station across years. Is there any observable / interpretable structure? Any outliers?
+
+```{r}
+temp_df=
+  ny_noaa %>% 
+   janitor::clean_names() %>% 
+  separate(date, c("year", "month", "day"), sep="-") %>% 
+   mutate(tmax= as.numeric(tmax)) %>% 
+    mutate(tmax=tmax*10) %>% 
+  group_by(id, year, month) %>%  
+  summarize(avg_tmax=mean(tmax,na.rm=TRUE))
+```
+
+
+Make a two-panel plot showing (i) tmax vs tmin for the full dataset (note that a scatterplot may not be the best option); and (ii) make a plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year.
